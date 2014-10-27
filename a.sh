@@ -54,7 +54,7 @@ YEARLY=${YEARLY:-10}
 function usage() {
 #Usage: $0 init|check|change-passphrase|backup|extract|delete|list|mount|info|prune|help
 cat << EOF
-Usage: $0 list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key
+Usage: $0 list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount
 EOF
 }
 
@@ -95,7 +95,7 @@ case "${1:-}" in
     attic init -e keyfile "$REPOSITORY" || { log_error "Could not initialize attic repository at $REPOSITORY"; exit 1; }
     ;;
   backup)
-    log_info "Beginning backup of the mount points at: '$BACKUP_SOURCES' to '$REPOSITORY'"
+    log_info "Beginning backup of the locations (not crossing mountpoints): '$BACKUP_SOURCES' to '$REPOSITORY'"
     REPO_WITH_UNDERSCORES=$(echo "$REPOSITORY" | sed "s#^/##" | sed "s#/#_#g" )
     EXCLUDE_FILE=$HOME/.attic/${REPO_WITH_UNDERSCORES}.exclude
     [ -f "$EXCLUDE_FILE" ] || { log_warn "Exclude file '$EXCLUDE_FILE' not found, creating empty one"; touch "$EXCLUDE_FILE"; }
@@ -121,11 +121,17 @@ case "${1:-}" in
     log_info "Obtaining archive list from $ARCHIVE:"
     attic list "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
+  mount)
+    [ -z "${2:-}" ] && { log_error "Missing timestamp in format YYYYMMDDHH"; exit 2; }
+    ARCHIVE=$REPOSITORY::$HOST-$2
+    log_info "Mounting archive $ARCHIVE on ~/mnt:"
+    attic mount "$ARCHIVE"  ~/mnt || { log_error "Could not mount $ARCHIVE on repository $REPOSITORY"; exit 4; }
+    ;;
   delete)
     [ -z "${2:-}" ] && { log_error "Missing timestamp in format YYYYMMDDHH"; exit 2; }
     ARCHIVE=$REPOSITORY::$HOST-$2
     log_info "Removing $ARCHIVE"
-    attic delete "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
+    attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   info)
     [ -z "${2:-}" ] && { log_error "Missing timestamp in format YYYYMMDDHH"; exit 2; }

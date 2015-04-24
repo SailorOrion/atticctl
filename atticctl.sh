@@ -112,29 +112,29 @@ case "${1:-}" in
     log_info "Purging of '$BACKUP_SOURCES' completed successfully" 
     ;;
   list-repo)
-    log_info "Obtaining repository list from $REPOSITORY:"
+    log_info "Obtaining archive list from $REPOSITORY:"
     attic list "$REPOSITORY"
     ;;
   list-archive)
-    [ -z "${2:-}" ] && { log_error "Missing timestamp in format YYYYMMDDHH"; exit 2; }
+    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
     ARCHIVE=$REPOSITORY::$HOST-$2
-    log_info "Obtaining archive list from $ARCHIVE:"
+    log_info "Obtaining file list from $ARCHIVE:"
     attic list "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   mount)
-    [ -z "${2:-}" ] && { log_error "Missing timestamp in format YYYYMMDDHH"; exit 2; }
+    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
     ARCHIVE=$REPOSITORY::$HOST-$2
     log_info "Mounting archive $ARCHIVE on ~/mnt:"
     attic mount "$ARCHIVE"  ~/mnt || { log_error "Could not mount $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   delete)
-    [ -z "${2:-}" ] && { log_error "Missing timestamp in format YYYYMMDDHH"; exit 2; }
+    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
     ARCHIVE=$REPOSITORY::$HOST-$2
     log_info "Removing $ARCHIVE"
     attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   info)
-    [ -z "${2:-}" ] && { log_error "Missing timestamp in format YYYYMMDDHH"; exit 2; }
+    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
     ARCHIVE=$REPOSITORY::$HOST-$2
     log_info "Obtaining archive information from $ARCHIVE:"
     attic info "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }

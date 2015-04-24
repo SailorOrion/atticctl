@@ -39,7 +39,7 @@ else
   log_warn "Configuration file '$CONFIG_FILE' not found. Trying default values"
 fi
 
-HOST=$(hostname -s)
+[ -z "${HOST:-}" ] && HOST=$(hostname -s)
 REPOSITORY=${REPOSITORY:-/Backups/$HOST}
 DATE=$(date +%Y%m%d%H%M%S)
 BACKUP_SOURCES=${BACKUP_SOURCES:-/}
@@ -54,7 +54,7 @@ YEARLY=${YEARLY:-10}
 function usage() {
 #Usage: $0 init|check|change-passphrase|backup|extract|delete|list|mount|info|prune|help
 cat << EOF
-Usage: $0 -c configfile list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount
+Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore
 EOF
 }
 
@@ -138,6 +138,12 @@ case "${1:-}" in
     ARCHIVE=$REPOSITORY::$HOST-$2
     log_info "Obtaining archive information from $ARCHIVE:"
     attic info "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
+    ;;
+  restore)
+    [ -z "${2:-}" ] && { log_error "Missing timestamp"; exit 2; }
+    ARCHIVE=$REPOSITORY::$HOST-$2
+    log_info "Restoring everything from $ARCHIVE:"
+    attic extract -n -v "$ARCHIVE" || { log_error "Could not restore from $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   *)
     usage

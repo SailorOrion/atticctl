@@ -54,7 +54,7 @@ YEARLY=${YEARLY:-10}
 function usage() {
 #Usage: $0 init|check|change-passphrase|backup|extract|delete|list|mount|info|prune|help
 cat << EOF
-Usage: $0 list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount
+Usage: $0 -c configfile list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount
 EOF
 }
 

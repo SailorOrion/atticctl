@@ -52,9 +52,8 @@ MONTHLY=${MONTHLY:-12}
 YEARLY=${YEARLY:-10}
 
 function usage() {
-#Usage: $0 init|check|change-passphrase|backup|extract|delete|list|mount|info|prune|help
 cat << EOF
-Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore
+Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore|verify
 EOF
 }
 
@@ -144,6 +143,9 @@ case "${1:-}" in
     ARCHIVE=$REPOSITORY::$HOST-$2
     log_info "Restoring everything from $ARCHIVE:"
     attic extract -n -v "$ARCHIVE" || { log_error "Could not restore from $ARCHIVE on repository $REPOSITORY"; exit 4; }
+    ;;
+  verify)
+    attic check -v $REPOSITORY
     ;;
   *)
     usage

@@ -41,6 +41,8 @@ fi
 
 [ -z "${HOST:-}" ] && HOST=$(hostname -s)
 REPOSITORY=${REPOSITORY:-/Backups/$HOST}
+LOCK_DIR=${REPOSITORY}/
+LOCK_FILENAME=${LOCK_DIR}lockfile
 DATE=$(date +%Y%m%d%H%M%S)
 BACKUP_SOURCES=${BACKUP_SOURCES:-/}
 
@@ -65,6 +67,21 @@ function get_archive()
     else
         ARCHIVE=$REPOSITORY::$HOST-$1
     fi
+}
+
+function lock_repo()
+{
+    log_debug "Checking for lock on $LOCK_FILENAME"
+    [ -f "$LOCK_FILENAME" ] && { log_error "Repository is locked by $(cat $LOCK_FILENAME), bailing out"; exit 9; }
+    [ -d "$LOCK_DIR" ] || { log_debug "Creating lock directory $LOCK_DIR"; mkdir -p "$LOCK_DIR"; }
+    log_debug "Creating lock file $LOCK_FILENAME"
+    echo -n "$(hostname):$$" > "$LOCK_FILENAME"
+}
+
+function unlock_repo()
+{
+    log_debug "Removing lock file $LOCK_FILENAME"
+    rm "$LOCK_FILENAME"
 }
 
 case "${1:-}" in
@@ -101,7 +118,9 @@ case "${1:-}" in
     log_info "are kept"
     ;;
   init)
+    lock_repo
     attic init -e keyfile "$REPOSITORY" || { log_error "Could not initialize attic repository at $REPOSITORY"; exit 1; }
+    unlock_repo
     ;;
   backup)
     log_info "Beginning backup of the locations (not crossing mountpoints): '$BACKUP_SOURCES' to '$REPOSITORY'"
@@ -109,16 +128,18 @@ case "${1:-}" in
     EXCLUDE_FILE=$HOME/.attic/${REPO_WITH_UNDERSCORES}.exclude
     [ -f "$EXCLUDE_FILE" ] || { log_warn "Exclude file '$EXCLUDE_FILE' not found, creating empty one"; touch "$EXCLUDE_FILE"; }
     log_debug "Parameters: REPO: $REPOSITORY; ARCHIVE: $HOST-$DATE; SOURCE: '$BACKUP_SOURCES'"
+    lock_repo
     echo "$BACKUP_SOURCES" | awk '{ for(i = 1; i <= NF; i++) { print $i; } }' | xargs attic create \
       --stats \
       --checkpoint-interval 300 \
       --exclude-caches \
       --do-not-cross-mountpoints \
       --exclude-from "$EXCLUDE_FILE" \
-      "$REPOSITORY::$HOST-$DATE" || { log_error "Backup failed"; exit 3; }
+      "$REPOSITORY::$HOST-$DATE" || { log_error "Backup failed"; unlock_repo; exit 3; }
     log_info "Backup completed, beginning purging of old backups"
-    attic prune -v "$REPOSITORY" --keep-hourly="$HOURLY" --keep-daily="$DAILY" --keep-weekly="$WEEKLY" --keep-monthly="$MONTHLY" --keep-yearly="$YEARLY" || { log_error "Pruning failed!"; exit 5; }
-    log_info "Purging of '$BACKUP_SOURCES' completed successfully" 
+    attic prune -v "$REPOSITORY" --keep-hourly="$HOURLY" --keep-daily="$DAILY" --keep-weekly="$WEEKLY" --keep-monthly="$MONTHLY" --keep-yearly="$YEARLY" || { log_error "Pruning failed!"; unlock_repo; exit 5; }
+    log_info "Purging of '$BACKUP_SOURCES' completed successfully"
+    unlock_repo
     ;;
   list-repo)
     log_info "Obtaining archive list from $REPOSITORY:"
@@ -136,8 +157,10 @@ case "${1:-}" in
     ;;
   delete)
     get_archive "${2:-}"
+    lock_repo
     log_info "Removing $ARCHIVE"
-    attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; exit 4; }
+    attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; unlock_repo; exit 4; }
+    unlock_repo
     ;;
   info)
     get_archive "${2:-}"
@@ -150,7 +173,9 @@ case "${1:-}" in
     attic extract -n -v "$ARCHIVE" || { log_error "Could not restore from $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   verify)
+    lock_repo
     attic check -v "$REPOSITORY"
+    unlock_repo
     ;;
   *)
     usage

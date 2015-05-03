@@ -59,11 +59,11 @@ EOF
 
 function get_archive()
 {
-    [ -z "${2:-}" ] && { log_error "Missing archive ID (list-repo gives a list of archives) "; exit 2; }
-    if [[ "$2" =~ "$HOST" ]]; then
-        ARCHIVE=$REPOSITORY::$2
+    [ -z "${1:-}" ] && { log_error "Missing archive ID (list-repo gives a list of archives) "; exit 2; }
+    if [[ "$1" =~ $HOST ]]; then
+        ARCHIVE=$REPOSITORY::$1
     else
-        ARCHIVE=$REPOSITORY::$HOST-$2
+        ARCHIVE=$REPOSITORY::$HOST-$1
     fi
 }
 
@@ -143,7 +143,7 @@ case "${1:-}" in
     attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   info)
-    get_archive
+    get_archive "${2:-}"
     log_info "Obtaining archive information from $ARCHIVE:"
     attic info "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
@@ -154,7 +154,7 @@ case "${1:-}" in
     attic extract -n -v "$ARCHIVE" || { log_error "Could not restore from $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   verify)
-    attic check -v $REPOSITORY
+    attic check -v "$REPOSITORY"
     ;;
   *)
     usage

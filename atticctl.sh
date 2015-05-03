@@ -55,7 +55,7 @@ YEARLY=${YEARLY:-10}
 
 function usage() {
 cat << EOF
-Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore|verify
+Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore|verify-all|verify-repo|verify-archives|repair
 EOF
 }
 
@@ -172,9 +172,22 @@ case "${1:-}" in
     log_info "Restoring everything from $ARCHIVE:"
     attic extract -n -v "$ARCHIVE" || { log_error "Could not restore from $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
-  verify)
-    lock_repo
+  verify-repo)
+    log_info "Checking repository metadata on $REPOSITORY"
+    attic check -v --repository-only "$REPOSITORY"
+    ;;
+  verify-all)
+    log_info "Checking full metadata on $REPOSITORY"
     attic check -v "$REPOSITORY"
+    ;;
+  verify-archives)
+    log_info "Checking archive metadata on $REPOSITORY"
+    attic check -v --archive-only "$REPOSITORY"
+    ;;
+  repair)
+    log_info "Doing full repair on $REPOSITORY"
+    lock_repo
+    attic check -v --repair "$REPOSITORY" || { log_error "Could not repair $REPOSITORY"; unlock_repo; exit 5; }
     unlock_repo
     ;;
   *)

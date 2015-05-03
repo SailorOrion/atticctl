@@ -57,6 +57,16 @@ Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list
 EOF
 }
 
+function get_archive()
+{
+    [ -z "${2:-}" ] && { log_error "Missing archive ID (list-repo gives a list of archives) "; exit 2; }
+    if [[ "$2" =~ "$HOST" ]]; then
+        ARCHIVE=$REPOSITORY::$2
+    else
+        ARCHIVE=$REPOSITORY::$HOST-$2
+    fi
+}
+
 case "${1:-}" in
   show-key)
     KEY=$(grep "id = " "$REPOSITORY/config" | sed 's#id = ##' )
@@ -133,8 +143,7 @@ case "${1:-}" in
     attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   info)
-    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
-    ARCHIVE=$REPOSITORY::$HOST-$2
+    get_archive
     log_info "Obtaining archive information from $ARCHIVE:"
     attic info "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;

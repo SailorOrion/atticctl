@@ -125,20 +125,17 @@ case "${1:-}" in
     attic list "$REPOSITORY"
     ;;
   list-archive)
-    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
-    ARCHIVE=$REPOSITORY::$HOST-$2
+    get_archive "${2:-}"
     log_info "Obtaining file list from $ARCHIVE:"
     attic list "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   mount)
-    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
-    ARCHIVE=$REPOSITORY::$HOST-$2
+    get_archive "${2:-}"
     log_info "Mounting archive $ARCHIVE on ~/mnt:"
     attic mount "$ARCHIVE"  ~/mnt || { log_error "Could not mount $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   delete)
-    [ -z "${2:-}" ] && { log_error "Missing archive ID (typically a timestamp)"; exit 2; }
-    ARCHIVE=$REPOSITORY::$HOST-$2
+    get_archive "${2:-}"
     log_info "Removing $ARCHIVE"
     attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
@@ -148,8 +145,7 @@ case "${1:-}" in
     attic info "$ARCHIVE" || { log_error "Could not obtain archive information for $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;
   restore)
-    [ -z "${2:-}" ] && { log_error "Missing timestamp"; exit 2; }
-    ARCHIVE=$REPOSITORY::$HOST-$2
+    get_archive "${2:-}"
     log_info "Restoring everything from $ARCHIVE:"
     attic extract -n -v "$ARCHIVE" || { log_error "Could not restore from $ARCHIVE on repository $REPOSITORY"; exit 4; }
     ;;

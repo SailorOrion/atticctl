@@ -119,7 +119,7 @@ case "${1:-}" in
     ;;
   init)
     lock_repo
-    attic init -e keyfile "$REPOSITORY" || { log_error "Could not initialize attic repository at $REPOSITORY"; exit 1; }
+    attic init -e keyfile "$REPOSITORY" || { log_error "Could not initialize attic repository at $REPOSITORY"; unlock_repo; exit 1; }
     unlock_repo
     ;;
   backup)

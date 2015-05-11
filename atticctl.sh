@@ -17,15 +17,29 @@ CONFIG_FILE=config
 ATTIC_DIR=$HOME/.attic
 KEY_DIR=$ATTIC_DIR/keys
 CONFIG_DIR=$ATTIC_DIR/configs
+VERBOSE=''
 
-while getopts ":c:" OPTION ; do
+function usage() {
+cat << EOF
+Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore|verify-all|verify-repo|verify-archives|repair
+EOF
+}
+
+while getopts "hvc:" OPTION ; do
   case $OPTION in
     c)
       shift
       CONFIG_FILE="$1"
       ;;
+    v)
+      VERBOSE=" --verbose "
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
   esac
-  shift 
+  shift
 done
 
 CONFIG_FILE="$CONFIG_DIR"/"$CONFIG_FILE"
@@ -52,12 +66,6 @@ DAILY=${DAILY:-7}
 WEEKLY=${WEEKLY:-4}
 MONTHLY=${MONTHLY:-12}
 YEARLY=${YEARLY:-10}
-
-function usage() {
-cat << EOF
-Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore|verify-all|verify-repo|verify-archives|repair
-EOF
-}
 
 function get_archive()
 {

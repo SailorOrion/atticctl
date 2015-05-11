@@ -137,7 +137,7 @@ case "${1:-}" in
       --exclude-from "$EXCLUDE_FILE" \
       "$REPOSITORY::$HOST-$DATE" || { log_error "Backup failed"; unlock_repo; exit 3; }
     log_info "Backup completed, beginning purging of old backups"
-    attic prune -v "$REPOSITORY" --keep-hourly="$HOURLY" --keep-daily="$DAILY" --keep-weekly="$WEEKLY" --keep-monthly="$MONTHLY" --keep-yearly="$YEARLY" || { log_error "Pruning failed!"; unlock_repo; exit 5; }
+    attic prune --stats --verbose "$REPOSITORY" --keep-hourly="$HOURLY" --keep-daily="$DAILY" --keep-weekly="$WEEKLY" --keep-monthly="$MONTHLY" --keep-yearly="$YEARLY" || { log_error "Pruning failed!"; unlock_repo; exit 5; }
     log_info "Purging of '$BACKUP_SOURCES' completed successfully"
     unlock_repo
     ;;
@@ -159,7 +159,7 @@ case "${1:-}" in
     get_archive "${2:-}"
     lock_repo
     log_info "Removing $ARCHIVE"
-    attic delete "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; unlock_repo; exit 4; }
+    attic delete --stats "$ARCHIVE" || { log_error "Could not delete archive for $ARCHIVE on repository $REPOSITORY"; unlock_repo; exit 4; }
     unlock_repo
     ;;
   info)

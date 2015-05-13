@@ -21,7 +21,7 @@ VERBOSE=''
 
 function usage() {
 cat << EOF
-Usage: $0 -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore|verify-all|verify-repo|verify-archives|repair
+Usage: $0 -v -c configfile -h list-configs|config|init|backup|delete|list-repo|list-archive|info|help|show-key|mount|restore|verify-all|verify-repo|verify-archives|repair
 EOF
 }
 
@@ -137,7 +137,7 @@ case "${1:-}" in
     [ -f "$EXCLUDE_FILE" ] || { log_warn "Exclude file '$EXCLUDE_FILE' not found, creating empty one"; touch "$EXCLUDE_FILE"; }
     log_debug "Parameters: REPO: $REPOSITORY; ARCHIVE: $HOST-$DATE; SOURCE: '$BACKUP_SOURCES'"
     lock_repo
-    echo "$BACKUP_SOURCES" | awk '{ for(i = 1; i <= NF; i++) { print $i; } }' | xargs attic create \
+    echo "$BACKUP_SOURCES" | awk '{ for(i = 1; i <= NF; i++) { print $i; } }' | xargs attic create $VERBOSE \
       --stats \
       --checkpoint-interval 300 \
       --exclude-caches \

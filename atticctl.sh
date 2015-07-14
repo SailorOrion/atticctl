@@ -128,9 +128,7 @@ case "${1:-}" in
     log_info "are kept"
     ;;
   init)
-    lock_repo
-    attic init -e keyfile "$REPOSITORY" || { log_error "Could not initialize attic repository at $REPOSITORY"; unlock_repo; exit 1; }
-    unlock_repo
+    attic init -e keyfile "$REPOSITORY" || { log_error "Could not initialize attic repository at $REPOSITORY"; exit 1; }
     ;;
   backup)
     log_info "Beginning backup of the locations (not crossing mountpoints): '$BACKUP_SOURCES' to '$REPOSITORY'"

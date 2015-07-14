@@ -113,10 +113,12 @@ case "${1:-}" in
     log_info "End of configuration listing"
     ;;
   config)
+    REPO_WITH_UNDERSCORES=$(echo "$REPOSITORY" | sed "s#^/##" | sed "s#/#_#g" )
     log_info "Current configuration: "
     log_info "Hostname:             $HOST"
     log_info "Repository:           $REPOSITORY"
     log_info "Locations to back up: $BACKUP_SOURCES"
+    log_info "Exclude file:         $HOME/.attic/${REPO_WITH_UNDERSCORES}.exclude"
     log_info "Purge configuration:"
     log_info "  $HOURLY hourly backups"
     log_info "  $DAILY daily backups"
